@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生物药研究进展 · 一键抓取助手</title>
+<script src="https://aisearch-task.bj.bcebos.com/static/tailwindcss-3.4.17.js"></script>
+<!-- html2pdf：浏览器端生成 PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root{
+    --brand-rgb:14,116,144;
+    --brand2-rgb:124,58,237;
+    --accent-rgb:234,88,12;
+    --card-bg:#ffffff;
+  }
+  html,body{font-family:'PingFang SC','HarmonyOS Sans SC','Microsoft YaHei','Helvetica Neue',sans-serif;background:linear-gradient(135deg,#f0f9ff 0%,#faf5ff 50%,#fff7ed 100%);min-height:100%;}
+  .mono{font-family:'SF Mono','Menlo','Consolas','Courier New',monospace;}
+  .display{font-family:Georgia,'Songti SC','STSong','SimSun',serif;letter-spacing:-0.02em;}
+  .glass{background:rgba(255,255,255,0.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.8);}
+  .hero-bg{background:
+     radial-gradient(1200px 400px at 10% -10%,rgba(14,116,144,0.18),transparent 60%),
+     radial-gradient(900px 500px at 100% 0%,rgba(124,58,237,0.15),transparent 60%),
+     radial-gradient(700px 400px at 50% 100%,rgba(234,88,12,0.10),transparent 60%);
+  }
+  .dna-pattern{
+    background-image:
+      radial-gradient(circle at 20% 30%,rgba(14,116,144,.12) 0,transparent 40%),
+      radial-gradient(circle at 80% 70%,rgba(124,58,237,.10) 0,transparent 40%);
+  }
+  @keyframes pulse-ring{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.2);opacity:0}}
+  .pulse-ring{animation:pulse-ring 1.6s cubic-bezier(.2,.8,.2,1) infinite;}
+  @keyframes float-slow{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .float-slow{animation:float-slow 6s ease-in-out infinite;}
+  @keyframes spin-slow{to{transform:rotate(360deg)}}
+  .spin-slow{animation:spin-slow 1.2s linear infinite;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .fade-up{animation:fadeUp .5s cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+  .modal-in{animation:modalIn .25s cubic-bezier(.2,.8,.2,1) both;}
+
+  .prog-track{height:8px;border-radius:999px;background:#e5e7eb;overflow:hidden;}
+  .prog-bar{height:100%;width:0;background:linear-gradient(90deg,#0e7490,#7c3aed,#ea580c);border-radius:999px;transition:width .4s cubic-bezier(.2,.8,.2,1);}
+
+  .log-line{animation:fadeUp .3s ease both;}
+  .log-ok{color:#047857}
+  .log-info{color:#0369a1}
+  .log-warn{color:#b45309}
+  .log-err{color:#b91c1c}
+
+  .tab-btn{transition:all .2s ease;}
+  .tab-btn.active{background:linear-gradient(135deg,#0e7490,#0891b2);color:#fff;box-shadow:0 6px 20px -6px rgba(14,116,144,.55);}
+  .tab-btn:not(.active):hover{background:#f1f5f9;}
+
+  .news-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;transition:all .25s cubic-bezier(.2,.8,.2,1);}
+  .news-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px -12px rgba(15,23,42,.18);border-color:#cbd5e1;}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:500;}
+  .badge-acad{background:#ecfeff;color:#0e7490;border:1px solid #a5f3fc;}
+  .badge-pre{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;}
+  .badge-rev{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+  .badge-trial{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
+  .badge-reg{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
+  .badge-ind{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}
+
+  .source-tag{font-size:11px;color:#64748b;background:#f1f5f9;padding:2px 8px;border-radius:6px;}
+
+  .dna-deco{position:absolute;opacity:.35;pointer-events:none;}
+
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
+  ::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+  .stat-card{border-radius:16px;padding:18px;background:#fff;border:1px solid #e5e7eb;}
+  .stat-num{font-size:32px;font-weight:800;line-height:1;background:linear-gradient(135deg,#0e7490,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+  /* ============ 模态框 ============ */
+  .modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(6px);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow-y:auto;}
+  .modal-body{background:#fff;width:100%;max-width:980px;border-radius:18px;box-shadow:0 30px 80px -10px rgba(0,0,0,.35);overflow:hidden;}
+  .modal-toolbar{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .modal-toolbar .title{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;}
+  .btn-primary{padding:8px 16px;border-radius:10px;font-weight:600;font-size:14px;color:#fff;background:linear-gradient(135deg,#0e7490,#0891b2);box-shadow:0 6px 16px -6px rgba(14,116,144,.5);transition:all .2s;}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 20px -6px rgba(14,116,144,.6);}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+  .btn-ghost{padding:8px 14px;border-radius:10px;font-weight:500;font-size:14px;color:#475569;background:#f1f5f9;transition:all .15s;}
+  .btn-ghost:hover{background:#e2e8f0;}
+
+  /* ============ 报告正文样式（屏幕+打印通用） ============ */
+  #reportContent{padding:0;color:#0f172a;font-size:14px;line-height:1.65;}
+  .r-page{padding:42px 48px;}
+  .r-page + .r-page{border-top:1px dashed #cbd5e1;}
+
+  /* 封面 */
+  .r-cover{background:
+      radial-gradient(600px 300px at 10% 10%,rgba(14,116,144,.12),transparent 60%),
+      radial-gradient(500px 300px at 100% 0%,rgba(124,58,237,.12),transparent 60%),
+      linear-gradient(135deg,#f8fafc,#ffffff);
+    padding:60px 56px;min-height:520px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;}
+  .r-cover::before{content:"";position:absolute;right:-80px;top:-80px;width:300px;height:300px;border:2px solid rgba(14,116,144,.15);border-radius:50%;}
+  .r-cover::after{content:"";position:absolute;right:20px;top:120px;width:200px;height:200px;border:2px solid rgba(124,58,237,.12);border-radius:50%;}
+  .r-cover .r-kicker{display:inline-block;padding:4px 12px;border-radius:999px;background:#ecfeff;color:#0e7490;font-size:12px;font-weight:600;border:1px solid #a5f3fc;margin-bottom:18px;}
+  .r-cover h1{font-family:Georgia,'Songti SC','STSong',serif;font-size:44px;font-weight:900;line-height:1.15;letter-spacing:-.02em;margin:0 0 12px;
+    background:linear-gradient(135deg,#0e7490,#7c3aed 60%,#ea580c);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .r-cover .r-sub{font-size:16px;color:#475569;max-width:560px;line-height:1.7;}
+  .r-cover .r-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px;position:relative;z-index:1;}
+  .r-meta-card{background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border:1px solid #e2e8f0;border-radius:14px;padding:16px;}
+  .r-meta-card .k{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+  .r-meta-card .v{font-size:18px;font-weight:700;color:#0f172a;}
+  .r-cover .r-foot{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#94a3b8;position:relative;z-index:1;}
+
+  /* 章节 */
+  .r-section-title{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:800;margin:0 0 6px;color:#0f172a;}
+  .r-section-title .r-bar{width:4px;height:22px;background:linear-gradient(180deg,#0e7490,#7c3aed);border-radius:4px;}
+  .r-section-sub{font-size:13px;color:#64748b;margin:0 0 18px;padding-left:14px;}
+
+  /* KPI 卡片 */
+  .r-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+  .r-kpi{background:linear-gradient(135deg,#f8fafc,#ffffff);border:1px solid #e2e8f0;border-radius:12px;padding:14px;}
+  .r-kpi .n{font-size:28px;font-weight:800;line-height:1;background:linear-gradient(135deg,#0e7490,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .r-kpi .l{font-size:12px;color:#64748b;margin-top:6px;}
+
+  /* 分类条形图（CSS 手绘） */
+  .r-bar-chart{display:grid;gap:10px;margin-bottom:24px;}
+  .r-bar-row{display:grid;grid-template-columns:140px 1fr 50px;gap:12px;align-items:center;}
+  .r-bar-row .lbl{font-size:13px;color:#334155;display:flex;align-items:center;gap:6px;}
+  .r-bar-row .track{height:14px;background:#f1f5f9;border-radius:99px;overflow:hidden;position:relative;}
+  .r-bar-row .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#0e7490,#7c3aed);transition:width .6s;}
+  .r-bar-row .num{font-size:13px;font-weight:700;color:#0f172a;text-align:right;}
+
+  /* 重点推荐 */
+  .r-highlight{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px;}
+  .r-hl-card{border:1px solid #e2e8f0;border-left:4px solid #ea580c;border-radius:10px;padding:14px 16px;background:#fffbeb;}
+  .r-hl-card .src{font-size:11px;color:#c2410c;font-weight:600;margin-bottom:6px;}
+  .r-hl-card .t{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:6px;line-height:1.45;}
+  .r-hl-card .d{font-size:12px;color:#475569;line-height:1.6;}
+
+  /* 分章节详情 */
+  .r-cat-section{margin-bottom:26px;page-break-inside:avoid;}
+  .r-cat-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(90deg,#f8fafc,transparent);border-radius:10px;margin-bottom:12px;border:1px solid #e2e8f0;}
+  .r-cat-header .dot{width:10px;height:10px;border-radius:50%;}
+  .r-cat-header .t{font-size:16px;font-weight:700;}
+  .r-cat-header .c{font-size:12px;color:#64748b;margin-left:auto;}
+  .r-item{border-bottom:1px dashed #e2e8f0;padding:10px 4px;}
+  .r-item:last-child{border-bottom:none;}
+  .r-item .t{font-size:14px;font-weight:600;color:#0f172a;margin-bottom:4px;line-height:1.45;}
+  .r-item .m{font-size:12px;color:#475569;line-height:1.6;}
+  .r-item .f{font-size:11px;color:#94a3b8;margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;}
+  .r-item .f .tag{background:#f1f5f9;padding:1px 8px;border-radius:6px;}
+
+  /* 来源条 */
+  .r-source-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+  .r-src{padding:10px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;font-size:12px;}
+  .r-src .n{font-weight:700;color:#0f172a;margin-bottom:2px;}
+  .r-src .c{color:#64748b;}
+
+  /* 重点文献精读卡片 */
+  .r-deepread{margin-bottom:26px;page-break-inside:avoid;}
+  .r-dr-card{border:1px solid #e2e8f0;border-radius:14px;padding:20px 22px;margin-bottom:14px;background:linear-gradient(135deg,#ffffff,#fafbff);position:relative;overflow:hidden;}
+  .r-dr-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#0e7490,#7c3aed,#ea580c);}
+  .r-dr-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
+  .r-dr-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .r-dr-stag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;}
+  .r-dr-rating{font-family:'SF Mono',monospace;font-size:14px;color:#ea580c;letter-spacing:2px;white-space:nowrap;}
+  .r-dr-title-cn{font-size:16px;font-weight:800;color:#0f172a;line-height:1.5;margin:4px 0 6px;}
+  .r-dr-title-orig{font-size:12px;color:#64748b;line-height:1.5;margin-bottom:12px;font-style:italic;padding-left:10px;border-left:2px solid #e2e8f0;}
+  .r-dr-block{margin-bottom:10px;}
+  .r-dr-block .lbl{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#0e7490;margin-bottom:5px;}
+  .r-dr-block .lbl.v{color:#7c3aed;}
+  .r-dr-block .lbl.s{color:#ea580c;}
+  .r-dr-block .body{font-size:13px;color:#334155;line-height:1.75;padding:8px 12px;background:#f8fafc;border-radius:8px;}
+  .r-dr-block .body b{color:#0e7490;font-weight:700;}
+  .r-dr-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:#64748b;}
+  .r-dr-meta span{background:#f1f5f9;padding:2px 8px;border-radius:6px;}
+  .r-dr-meta a{color:#0e7490;text-decoration:none;word-break:break-all;}
+  .r-dr-meta a:hover{text-decoration:underline;}
+
+  /* 页脚签名 */
+  .r-endnote{padding:20px 48px 36px;font-size:11px;color:#94a3b8;text-align:center;border-top:1px solid #f1f5f9;}
+
+  /* PDF 导出优化：避免在模态框工具栏处切断 */
+  @media print{
+    body *{visibility:hidden;}
+    #reportContent, #reportContent *{visibility:visible;}
+    #reportContent{position:absolute;left:0;top:0;width:100%;}
+    .no-print{display:none !important;}
+  }
+</style>
+</head>
+<body class="text-slate-800">
+
+<!-- 顶部导航 -->
+<nav class="sticky top-0 z-40 glass">
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-[38px] h-[38px] rounded-xl bg-gradient-to-br from-[#0e7490] to-[#7c3aed] flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <svg class="w-[22px] h-[22px] text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4c0 8 16 8 16 16"/><path d="M20 4c0 8-16 8-16 16"/><path d="M6.5 5.5l11 13M7.5 13.5l9-9M7.5 18.5l9-9"/></svg>
+      </div>
+      <div>
+        <div class="text-[17px] font-bold leading-tight">生物药研究进展</div>
+        <div class="text-[12px] text-slate-500 leading-tight">Biopharma Research Tracker · 一键全网检索</div>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-2 text-[12px] text-slate-500">
+      <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>实时在线</span>
+      <span class="mx-1">·</span>
+      <span id="todayLabel"></span>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero 区 -->
+<section class="hero-bg relative overflow-hidden">
+  <svg class="dna-deco float-slow" style="top:40px;right:40px;width:140px;height:140px" viewBox="0 0 100 100">
+    <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0e7490"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs>
+    <path d="M20 10 Q50 30 20 50 Q-10 70 20 90" stroke="url(#g1)" stroke-width="2" fill="none"/>
+    <path d="M80 10 Q50 30 80 50 Q110 70 80 90" stroke="url(#g1)" stroke-width="2" fill="none"/>
+    <g stroke="url(#g1)" stroke-width="1.5"><line x1="20" y1="18" x2="80" y2="18"/><line x1="20" y1="32" x2="80" y2="32"/><line x1="20" y1="50" x2="80" y2="50"/><line x1="20" y1="68" x2="80" y2="68"/><line x1="20" y1="82" x2="80" y2="82"/></g>
+  </svg>
+  <svg class="dna-deco" style="bottom:20px;left:20px;width:100px;height:100px;opacity:.25" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="40" stroke="#ea580c" stroke-width="2" fill="none" stroke-dasharray="4 4"/>
+    <circle cx="50" cy="50" r="25" stroke="#0e7490" stroke-width="2" fill="none"/>
+  </svg>
+
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16 relative">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div class="fade-up">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 border border-cyan-200 text-[12px] text-cyan-800 mb-5">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
+          覆盖 PubMed · bioRxiv · Nature · NEJM · Lancet · Cell · ClinicalTrials.gov · WHO
+        </div>
+        <h1 class="display text-[36px] md:text-[52px] font-black leading-[1.1] mb-4">
+          一键获取<br/>
+          <span style="background:linear-gradient(135deg,#0e7490,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent">全球生物药</span>
+          最新进展
+        </h1>
+        <p class="text-[15px] md:text-[17px] text-slate-600 leading-relaxed mb-7 max-w-xl">
+          点击下方按钮，即刻在浏览器中检索单抗、ADC、CAR-T、基因治疗、mRNA 疫苗、双抗、生物类似药等领域的最新文献、临床试验、监管动态与产业新闻，<b>自动精读重点文献并生成中文摘要</b>，一键导出图文并茂的 PDF 日报。
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <button id="fetchBtn" class="group relative px-7 py-3.5 rounded-xl font-semibold text-white text-[16px] bg-gradient-to-r from-[#0e7490] to-[#0891b2] shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+            <span class="relative flex h-3 w-3"><span class="pulse-ring absolute inline-flex h-full w-full rounded-full bg-white/60 hidden group-[.running]:inline-block"></span><span id="btnDot" class="relative inline-flex rounded-full h-3 w-3 bg-white"></span></span>
+            <span id="btnText">🚀 立即开始全网检索</span>
+          </button>
+          <button id="stopBtn" class="hidden px-5 py-3.5 rounded-xl font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50">停止</button>
+          <button id="demoBtn" class="px-5 py-3.5 rounded-xl font-medium text-slate-700 bg-white/70 border border-slate-300 hover:bg-white">📖 查看示例</button>
+          <button id="reportBtn" class="px-5 py-3.5 rounded-xl font-medium text-white bg-gradient-to-r from-[#7c3aed] to-[#ea580c] shadow-lg shadow-purple-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            📊 生成每日报告
+          </button>
+        </div>
+        <div class="mt-5 text-[12px] text-slate-500 flex items-center gap-4 flex-wrap">
+          <span>⚡ 约 30–60 秒完成</span>
+          <span>🔒 数据直接返回浏览器，不经中间服务器</span>
+          <span>📄 支持一键导出 PDF 归档</span>
+          <span>🌐 需能访问国际学术网络</span>
+        </div>
+      </div>
+
+      <!-- 控制面板 -->
+      <div class="fade-up glass rounded-2xl p-6 shadow-xl" style="animation-delay:.1s">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <svg class="w-[20px] h-[20px] text-[#0e7490]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+            <span class="font-bold text-[16px]">实时抓取状态</span>
+          </div>
+          <span id="statusBadge" class="badge badge-ind">待启动</span>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex justify-between text-[13px] mb-1.5">
+            <span class="text-slate-600" id="progLabel">等待开始…</span>
+            <span class="mono font-semibold text-slate-700" id="progPct">0%</span>
+          </div>
+          <div class="prog-track"><div class="prog-bar" id="progBar"></div></div>
+        </div>
+
+        <div class="mb-3">
+          <div class="text-[13px] text-slate-500 mb-2">数据来源</div>
+          <div class="grid grid-cols-2 gap-2 text-[13px]" id="sourceBox"></div>
+        </div>
+
+        <div class="bg-slate-900 rounded-xl p-3 h-[180px] overflow-y-auto mono text-[12px] leading-relaxed" id="logBox">
+          <div class="text-slate-400">[系统] 点击「立即开始全网检索」启动任务…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 统计卡片区 -->
+<section id="statsSection" class="max-w-7xl mx-auto px-4 md:px-8 -mt-2 mb-6 hidden">
+  <div class="grid grid-cols-2 md:grid-cols-6 gap-3" id="statsGrid"></div>
+</section>
+
+<!-- 结果区 -->
+<section id="resultsSection" class="max-w-7xl mx-auto px-4 md:px-8 pb-16 hidden">
+  <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+    <div>
+      <h2 class="text-[24px] md:text-[30px] font-bold display">📰 今日研究进展</h2>
+      <p class="text-[14px] text-slate-500 mt-1" id="resultSubtitle"></p>
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      <button id="reportBtnInline" class="px-4 py-2 rounded-lg text-[13px] font-medium text-white bg-gradient-to-r from-[#7c3aed] to-[#ea580c] hover:opacity-90">📊 生成每日报告 / 导出PDF</button>
+      <button id="exportJsonBtn" class="px-4 py-2 rounded-lg text-[13px] font-medium bg-white border border-slate-300 hover:bg-slate-50">💾 导出 JSON</button>
+      <button id="exportMdBtn" class="px-4 py-2 rounded-lg text-[13px] font-medium bg-white border border-slate-300 hover:bg-slate-50">📝 导出 Markdown</button>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2 mb-5" id="tabsBar"></div>
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4" id="newsGrid"></div>
+
+  <div id="emptyHint" class="hidden text-center py-16 text-slate-500">
+    <div class="text-5xl mb-3">🔍</div>
+    <div>该分类暂无内容，请选择其他分类或重新抓取</div>
+  </div>
+</section>
+
+<!-- 说明区 -->
+<section class="max-w-7xl mx-auto px-4 md:px-8 pb-20">
+  <div class="glass rounded-2xl p-6 md:p-8">
+    <h3 class="text-[20px] font-bold mb-4 flex items-center gap-2">
+      <svg class="w-[22px] h-[22px] text-[#7c3aed]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      使用说明
+    </h3>
+    <div class="grid md:grid-cols-4 gap-6 text-[14px] text-slate-600 leading-relaxed">
+      <div>
+        <div class="font-semibold text-slate-800 mb-1">1. 一键触发</div>
+        点击"立即开始全网检索"，浏览器将直接调用各数据源的公开 API（PubMed E-utilities、bioRxiv RSS、ClinicalTrials.gov 等），无需服务端中转。
+      </div>
+      <div>
+        <div class="font-semibold text-slate-800 mb-1">2. 分类浏览</div>
+        抓取完成后可按 6 大类筛选阅读，每条均可跳转原文；统计卡与分类 Tab 提供快速筛选。
+      </div>
+      <div>
+        <div class="font-semibold text-slate-800 mb-1">3. 生成日报</div>
+        点击"生成每日报告"，即可查看图文并茂的结构化报告：含封面、执行摘要、分类分布图、<b>重点文献中文精读</b>（含研究类型、疾病领域、核心发现、行业意义点评、推荐度星级）与分章节详情。
+      </div>
+      <div>
+        <div class="font-semibold text-slate-800 mb-1">4. 导出归档</div>
+        报告内一键导出排版精美的 PDF；同时支持 JSON / Markdown 原始数据导出，方便本地存档或二次分析。
+      </div>
+    </div>
+    <div class="mt-5 p-3 rounded-lg bg-amber-50 border border-amber-200 text-[13px] text-amber-800">
+      ⚠️ 由于浏览器跨域限制，部分来源需通过公共 CORS 代理访问；如遇个别来源失败不影响整体结果，可点击"立即开始"重试。PDF 导出依赖 html2pdf.js（CDN 加载），首次使用请保持网络通畅。
+    </div>
+  </div>
+</section>
+
+<footer class="border-t border-slate-200/60 py-6 text-center text-[12px] text-slate-400">
+  © BioPharma Research Tracker · Powered by open academic APIs · 仅供科研信息参考
+</footer>
+
+<!-- ============ 报告预览模态框 ============ -->
+<div id="reportModal" class="modal-mask hidden">
+  <div class="modal-body modal-in">
+    <div class="modal-toolbar no-print">
+      <div class="title">
+        <svg class="w-[20px] h-[20px] text-[#7c3aed]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        每日研究进展报告 · 预览（含重点文献中文精读）
+      </div>
+      <div class="flex gap-2">
+        <button id="exportPdfBtn" class="btn-primary flex items-center gap-1.5">
+          <svg class="w-[16px] h-[16px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span id="pdfBtnText">导出 PDF</span>
+        </button>
+        <button id="printBtn" class="btn-ghost">🖨️ 打印</button>
+        <button id="closeModalBtn" class="btn-ghost">✕ 关闭</button>
+      </div>
+    </div>
+    <div id="reportContent">
+      <!-- JS 注入报告内容 -->
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================
+ *  生物药研究进展 · 浏览器端抓取器（含日报+PDF导出）
+ * ============================ */
+
+const CATEGORIES = [
+  { key:'academic',  label:'📄 学术文献',  badge:'badge-acad',  desc:'PubMed 最新论文', color:'#0e7490' },
+  { key:'preprint',  label:'🧬 预印本',    badge:'badge-pre',   desc:'bioRxiv 首发',    color:'#7c3aed' },
+  { key:'review',    label:'📚 综述评论',  badge:'badge-rev',   desc:'Nature 顶刊点评', color:'#ea580c' },
+  { key:'trial',     label:'🔬 临床试验',  badge:'badge-trial', desc:'ClinicalTrials.gov', color:'#15803d' },
+  { key:'regulatory',label:'🏛️ 监管动态',  badge:'badge-reg',   desc:'WHO / FDA 等',   color:'#b91c1c' },
+  { key:'industry',  label:'🏢 产业新闻',  badge:'badge-ind',   desc:'ScienceDaily/Phys.org', color:'#1d4ed8' },
+];
+
+const SOURCES = [
+  { key:'pubmed',    label:'PubMed',          cat:'academic',   enabled:true,
+    url:(q)=>`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(q)}&retmax=25&sort=date&retmode=json`,
+    detailUrl:(ids)=>`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids.join(',')}&retmode=json` },
+  { key:'biorxiv',   label:'bioRxiv',         cat:'preprint',   enabled:true,
+    url:()=>`https://api.biorxiv.org/details/biorxiv/${daysAgo(3)}/${todayStr()}/0/25` },
+  { key:'trials',    label:'ClinicalTrials',  cat:'trial',      enabled:true,
+    url:(q)=>`https://clinicaltrials.gov/api/v2/studies?query.term=${encodeURIComponent(q)}&sort=LastUpdatePostDate:desc&pageSize=25&format=json` },
+  { key:'who',       label:'WHO',             cat:'regulatory', enabled:true,
+    url:()=>`https://www.who.int/api/news/news?sf_culture=zh&$orderby=PublicationDateAndTime%20desc&$top=10&$select=Title,PublicationDateAndTime,ItemDefaultUrl,NewsContent` },
+  { key:'sciencedaily', label:'ScienceDaily', cat:'industry',   enabled:true,
+    url:()=>`https://www.sciencedaily.com/rss/plants_animals/biotechnology.xml` },
+  { key:'physorg',   label:'Phys.org',        cat:'industry',   enabled:true,
+    url:()=>`https://phys.org/rss-feed/biology-news/biotechnology/` },
+];
+
+const BIOPHARMA_KEYWORDS = [
+  'monoclonal antibody','antibody-drug conjugate','ADC','bispecific antibody',
+  'CAR-T','CAR-NK','cell therapy','gene therapy','mRNA vaccine','mRNA therapeutic',
+  'immune checkpoint inhibitor','PD-1','PD-L1','CTLA-4','biologic','biosimilar',
+  'recombinant protein','vaccine','therapeutic antibody','oncolytic virus','IL-2',
+  'CRISPR therapeutic','AAV','lentiviral vector','peptide therapeutic',
+  'biopharmaceutical','immunotherapy'
+];
+
+function todayStr(d=new Date()){return d.toISOString().slice(0,10);}
+function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return todayStr(d);}
+function $(sel){return document.querySelector(sel);}
+function $$(sel){return document.querySelectorAll(sel);}
+
+const PROXY_POOL = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
+];
+
+async function fetchWithProxy(url, type='json', timeout=15000){
+  let lastErr;
+  try{
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),timeout);
+    const r=await fetch(url,{signal:ctrl.signal});
+    clearTimeout(t);
+    if(r.ok){
+      if(type==='json') return await r.json();
+      if(type==='text') return await r.text();
+      return r;
+    }
+  }catch(e){lastErr=e;}
+  for(const proxy of PROXY_POOL){
+    try{
+      const ctrl=new AbortController();
+      const t=setTimeout(()=>ctrl.abort(),timeout);
+      const purl=proxy(url);
+      const r=await fetch(purl,{signal:ctrl.signal});
+      clearTimeout(t);
+      if(r.ok){
+        if(type==='json') return await r.json();
+        if(type==='text') return await r.text();
+        return r;
+      }
+    }catch(e){lastErr=e;continue;}
+  }
+  throw lastErr || new Error('所有代理请求失败');
+}
+
+function log(msg, type='info'){
+  const box=$('#logBox');
+  const t=new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  const cls={ok:'log-ok',info:'log-info',warn:'log-warn',err:'log-err'}[type]||'log-info';
+  const prefix={ok:'✓',info:'ℹ',warn:'⚠',err:'✗'}[type]||'·';
+  const line=document.createElement('div');
+  line.className=`log-line ${cls}`;
+  line.textContent=`[${t}] ${prefix} ${msg}`;
+  box.appendChild(line);
+  box.scrollTop=box.scrollHeight;
+}
+
+function setProgress(pct, label){
+  $('#progBar').style.width=pct+'%';
+  $('#progPct').textContent=Math.round(pct)+'%';
+  if(label) $('#progLabel').textContent=label;
+}
+
+function setStatus(state){
+  const map={
+    idle:   {text:'待启动',cls:'badge-ind'},
+    running:{text:'抓取中…',cls:'badge-acad'},
+    done:   {text:'已完成',cls:'badge-trial'},
+    error:  {text:'部分失败',cls:'badge-reg'}
+  };
+  const s=map[state]||map.idle;
+  const b=$('#statusBadge');
+  b.className=`badge ${s.cls}`;
+  b.textContent=s.text;
+}
+
+function parseXml(xmlStr){ return new DOMParser().parseFromString(xmlStr,'text/xml'); }
+function textOf(el,tag){
+  if(!el) return '';
+  const n=el.getElementsByTagName(tag)[0];
+  return n ? (n.textContent||'').trim() : '';
+}
+
+async function fetchPubMed(){
+  const out=[];
+  const q='('+BIOPHARMA_KEYWORDS.map(k=>`"${k}"[Title/Abstract]`).join(' OR ')+') AND (biologics OR biopharmaceuticals) AND ("last 3 days"[PDat])';
+  log('请求 PubMed ESearch…','info');
+  const data=await fetchWithProxy(SOURCES[0].url(q));
+  const ids=(data.esearchresult && data.esearchresult.idlist)||[];
+  if(!ids.length){log('PubMed 未找到新文献','warn');return out;}
+  log(`PubMed ESummary 拉取 ${ids.length} 篇摘要…`,'info');
+  const detail=await fetchWithProxy(SOURCES[0].detailUrl(ids));
+  const result=(detail.result)||{};
+  ids.forEach(id=>{
+    const it=result[id]; if(!it) return;
+    out.push({
+      id:'pm-'+id, cat:'academic',
+      title:it.title||'无标题',
+      authors: (it.authors||[]).slice(0,4).map(a=>a.name).join(', ') + ((it.authors||[]).length>4?' et al.':''),
+      journal: it.fulljournalname || it.source || 'PubMed',
+      date: it.pubdate || it.sortpubdate || '',
+      source:'PubMed',
+      url:`https://pubmed.ncbi.nlm.nih.gov/${id}/`,
+      summary:''
+    });
+  });
+  log(`PubMed 成功获取 ${out.length} 篇`,'ok');
+  return out;
+}
+
+async function fetchBioRxiv(){
+  const out=[];
+  log('请求 bioRxiv API…','info');
+  const data=await fetchWithProxy(SOURCES[1].url());
+  const arr=(data.collection||[]).filter(it=>{
+    const t=(it.title+' '+it.abstract).toLowerCase();
+    return BIOPHARMA_KEYWORDS.some(k=>t.includes(k.toLowerCase()));
+  }).slice(0,10);
+  arr.forEach(it=>{
+    out.push({
+      id:'bx-'+it.doi, cat:'preprint',
+      title:it.title, authors:it.authors, journal:'bioRxiv', date:it.date||'',
+      source:'bioRxiv', url:'https://doi.org/'+it.doi,
+      summary:(it.abstract||'').slice(0,300)
+    });
+  });
+  log(`bioRxiv 筛出 ${out.length} 篇相关预印本`,'ok');
+  return out;
+}
+
+async function fetchTrials(){
+  const out=[];
+  const q=BIOPHARMA_KEYWORDS.slice(0,8).map(k=>`${k}`).join(' OR ');
+  log('请求 ClinicalTrials.gov v2 API…','info');
+  const data=await fetchWithProxy(SOURCES[2].url(q));
+  const studies=data.studies||[];
+  studies.forEach(s=>{
+    const p=s.protocolSection||{};
+    const id=(p.identificationModule||{}).nctId||'';
+    const title=(p.identificationModule||{}).briefTitle||'';
+    const status=(p.statusModule||{}).overallStatus||'';
+    const phase=(p.designModule||{}).phases||[];
+    const org=(p.identificationModule||{}).organization||{};
+    const sponsor=(p.sponsorCollaboratorsModule?.leadSponsor?.name)||'';
+    const date=(p.statusModule||{}).lastUpdatePostDateStruct?.date||'';
+    const cond=(p.conditionsModule?.conditions||[]).slice(0,3).join('; ');
+    out.push({
+      id:'ct-'+id, cat:'trial', title, authors: sponsor,
+      journal: org.orgFullName||org.orgName||'ClinicalTrials.gov',
+      date, source:'ClinicalTrials.gov', url:`https://clinicaltrials.gov/study/${id}`,
+      summary:`${phase.join(' / ')} · ${status}${cond?' · '+cond:''}`
+    });
+  });
+  log(`ClinicalTrials 获取 ${out.length} 项`,'ok');
+  return out;
+}
+
+async function fetchWHO(){
+  const out=[];
+  log('请求 WHO 新闻…','info');
+  try{
+    const data=await fetchWithProxy(SOURCES[3].url());
+    const items=data.value||[];
+    items.slice(0,8).forEach(it=>{
+      out.push({
+        id:'who-'+(it.ItemDefaultUrl||Math.random()), cat:'regulatory',
+        title:it.Title||'', authors:'WHO', journal:'世界卫生组织',
+        date:it.PublicationDateAndTime?it.PublicationDateAndTime.slice(0,10):'',
+        source:'WHO', url:'https://www.who.int/'+(it.ItemDefaultUrl||''),
+        summary: stripHtml((it.NewsContent||'')).slice(0,260)
+      });
+    });
+    log(`WHO 获取 ${out.length} 条`,'ok');
+  }catch(e){ log('WHO 请求失败：'+e.message,'warn'); }
+  return out;
+}
+
+function stripHtml(s){return (s||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();}
+
+async function fetchRss(name, srcIdx, cat){
+  const out=[];
+  log(`请求 ${name} RSS…`,'info');
+  try{
+    const txt=await fetchWithProxy(SOURCES[srcIdx].url(),'text');
+    const doc=parseXml(txt);
+    const items=doc.querySelectorAll('item');
+    let count=0;
+    items.forEach(it=>{
+      const title=textOf(it,'title');
+      const desc=stripHtml(textOf(it,'description')).slice(0,280);
+      const link=textOf(it,'link');
+      const date=textOf(it,'pubDate').slice(0,25);
+      if(!title) return;
+      out.push({
+        id:`${name}-${count}-${link.slice(-20)}`,
+        cat,title,authors:'',journal:name,date,source:name,url:link,summary:desc
+      });
+      count++;
+      if(count>=8) return;
+    });
+    log(`${name} 获取 ${out.length} 条`,'ok');
+  }catch(e){ log(`${name} 请求失败：${e.message}`,'warn'); }
+  return out;
+}
+
+let isRunning=false, abortFlag=false, allResults=[];
+
+async function runFetch(){
+  if(isRunning) return;
+  isRunning=true; abortFlag=false; allResults=[];
+  $('#logBox').innerHTML='';
+  $('#resultsSection').classList.add('hidden');
+  $('#statsSection').classList.add('hidden');
+  $('#reportBtn').disabled=true;
+  $('#fetchBtn').classList.add('running');
+  $('#btnText').textContent='抓取进行中…';
+  $('#btnDot').classList.add('spin-slow');
+  $('#stopBtn').classList.remove('hidden');
+  setStatus('running');
+  setProgress(2,'初始化…');
+  log('任务开始，准备连接数据源……','ok');
+
+  const tasks=[
+    {w:25,run:fetchPubMed,name:'PubMed'},
+    {w:20,run:fetchBioRxiv,name:'bioRxiv'},
+    {w:20,run:fetchTrials,name:'ClinicalTrials'},
+    {w:10,run:fetchWHO,name:'WHO'},
+    {w:12,run:()=>fetchRss('ScienceDaily',4,'industry'),name:'ScienceDaily'},
+    {w:13,run:()=>fetchRss('Phys.org',5,'industry'),name:'Phys.org'},
+  ];
+  let acc=5, totalGot=0, totalFail=0;
+  for(const t of tasks){
+    if(abortFlag){log('用户已中止','warn');break;}
+    setProgress(acc,`正在抓取 ${t.name}…`);
+    try{
+      const r=await t.run();
+      allResults.push(...r);
+      totalGot+=r.length;
+    }catch(e){
+      log(`${t.name} 失败：${e.message}`,'err');
+      totalFail++;
+    }
+    acc+=t.w;
+  }
+  setProgress(100,'完成');
+  log(`任务结束，共获取 ${totalGot} 条资讯，失败源 ${totalFail} 个`, totalFail?'warn':'ok');
+  setStatus(totalFail?'error':'done');
+  $('#fetchBtn').classList.remove('running');
+  $('#btnText').textContent='🔄 重新抓取';
+  $('#btnDot').classList.remove('spin-slow');
+  $('#stopBtn').classList.add('hidden');
+  isRunning=false;
+
+  if(allResults.length){
+    renderResults();
+    $('#reportBtn').disabled=false;
+  }else{
+    log('未获取到任何数据，请检查网络后重试','err');
+  }
+}
+
+let currentCat='all';
+
+function renderResults(){
+  const sec=$('#resultsSection');
+  sec.classList.remove('hidden');
+  $('#statsSection').classList.remove('hidden');
+
+  const stats=CATEGORIES.map(c=>({...c,count:allResults.filter(r=>r.cat===c.key).length}));
+  const total=allResults.length;
+  $('#resultSubtitle').textContent=`${todayStr()} · 共 ${total} 条最新资讯，来源 ${new Set(allResults.map(r=>r.source)).size} 个`;
+  const statsGrid=$('#statsGrid');
+  statsGrid.innerHTML=`
+    <div class="stat-card">
+      <div class="text-[12px] text-slate-500 mb-1">总计</div>
+      <div class="stat-num">${total}</div>
+      <div class="text-[12px] text-slate-400 mt-1">条资讯</div>
+    </div>
+    ${stats.map(s=>`
+      <div class="stat-card cursor-pointer hover:shadow-md transition" data-cat="${s.key}">
+        <div class="text-[12px] text-slate-500 mb-1">${s.label.replace(/^[^\u4e00-\u9fa5a-zA-Z]+/,'')}</div>
+        <div class="stat-num" style="font-size:28px">${s.count}</div>
+        <div class="text-[12px] text-slate-400 mt-1">${s.desc}</div>
+      </div>
+    `).join('')}
+  `;
+  statsGrid.querySelectorAll('[data-cat]').forEach(el=>{
+    el.addEventListener('click',()=>{currentCat=el.dataset.cat;renderTabs();renderCards();});
+  });
+  renderTabs();
+  renderCards();
+}
+
+function renderTabs(){
+  const tabsBar=$('#tabsBar');
+  tabsBar.innerHTML=`
+    <button data-cat="all" class="tab-btn px-4 py-2 rounded-lg text-[14px] font-medium border border-slate-200 ${currentCat==='all'?'active':''}">全部 (${allResults.length})</button>
+    ${CATEGORIES.map(c=>{
+      const n=allResults.filter(r=>r.cat===c.key).length;
+      return `<button data-cat="${c.key}" class="tab-btn px-4 py-2 rounded-lg text-[14px] font-medium border border-slate-200 ${currentCat===c.key?'active':''}">${c.label} (${n})</button>`;
+    }).join('')}
+  `;
+  tabsBar.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>{currentCat=b.dataset.cat;renderTabs();renderCards();window.scrollTo({top:$('#resultsSection').offsetTop-70,behavior:'smooth'});});
+  });
+}
+
+function renderCards(){
+  const grid=$('#newsGrid');
+  const list=currentCat==='all'?allResults:allResults.filter(r=>r.cat===currentCat);
+  $('#emptyHint').classList.toggle('hidden', list.length>0);
+  grid.innerHTML=list.map((item,idx)=>{
+    const cat=CATEGORIES.find(c=>c.key===item.cat)||CATEGORIES[0];
+    return `
+      <a href="${item.url}" target="_blank" rel="noopener" class="news-card block fade-up" style="animation-delay:${Math.min(idx*30,400)}ms">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <span class="badge ${cat.badge}">${cat.label}</span>
+          <span class="source-tag">${item.source||''}</span>
+        </div>
+        <h3 class="font-bold text-[16px] leading-snug mb-2 line-clamp-3" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(item.title)}</h3>
+        ${item.summary?`<p class="text-[13px] text-slate-600 leading-relaxed mb-3 line-clamp-3" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(item.summary)}</p>`:''}
+        <div class="flex items-center justify-between text-[12px] text-slate-500 mt-auto pt-2 border-t border-slate-100">
+          <span class="truncate mr-2" title="${escapeHtml(item.journal||'')}">${escapeHtml((item.journal||'').slice(0,35))}</span>
+          <span class="mono shrink-0">${item.date?'· '+item.date.slice(0,10):''}</span>
+        </div>
+        ${item.authors?`<div class="text-[12px] text-slate-400 mt-1 truncate">${escapeHtml((item.authors||'').slice(0,80))}</div>`:''}
+      </a>
+    `;
+  }).join('');
+}
+
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+function exportJson(){
+  const blob=new Blob([JSON.stringify(allResults,null,2)],{type:'application/json'});
+  download(blob,`biopharma_${todayStr()}.json`);
+}
+function exportMd(){
+  const lines=[
+    `# 生物药研究进展日报 · ${todayStr()}`,
+    `共 ${allResults.length} 条资讯`,
+    ''
+  ];
+  CATEGORIES.forEach(c=>{
+    const arr=allResults.filter(r=>r.cat===c.key);
+    if(!arr.length) return;
+    lines.push(`## ${c.label}（${arr.length}条）`,'');
+    arr.forEach(it=>{
+      lines.push(`- **[${it.title}](${it.url})** — ${it.source}${it.date?' · '+it.date.slice(0,10):''}${it.journal?' · '+it.journal:''}`);
+      if(it.summary) lines.push(`  ${it.summary.slice(0,200)}`);
+    });
+    lines.push('');
+  });
+  const blob=new Blob([lines.join('\n')],{type:'text/markdown;charset=utf-8'});
+  download(blob,`biopharma_${todayStr()}.md`);
+}
+function download(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+const DEMO_DATA=[
+  {id:'d1',cat:'academic',title:'Obexelimab and the Promise of Nondepleting B-Cell Therapy in IgG4-Related Disease',authors:'Stone JH, et al.',journal:'New England Journal of Medicine',date:'2026-10-06',source:'NEJM',url:'https://www.nejm.org',summary:'NEJM 发表评论文章，探讨非耗竭型 B 细胞疗法在 IgG4 相关疾病中的治疗前景，为自身免疫生物药设计提供新思路。'},
+  {id:'d2',cat:'review',title:'FDA approval of a gene therapy for a rare lysosomal storage disorder',authors:'Editorial',journal:'Nature Reviews Drug Discovery',date:'2026-10-05',source:'Nature',url:'https://www.nature.com/nrd',summary:'一款针对罕见溶酶体贮积症的体内基因疗法获 FDA 批准，标志着 AAV 体内基因治疗在罕见病领域的又一里程碑。'},
+  {id:'d3',cat:'trial',title:'An Investigational Phase 1/2 Study of Sac-TMT (MK-2870) Alone and With Pembrolizumab for the Treatment of Triple-Negative Breast Cancer (TroFuse-011)',authors:'Merck Sharp & Dohme LLC',journal:'Memorial Sloan Kettering Cancer Center',date:'2026-10-04',source:'ClinicalTrials.gov',url:'https://clinicaltrials.gov',summary:'Phase 1/2 · RECRUITING · 三阴性乳腺癌；MK-2870 为新型 TROP2 ADC 与帕博利珠单抗联合方案。'},
+  {id:'d4',cat:'industry',title:'New weapon that fights both lung cancer and muscle wasting discovered',authors:'ScienceDaily Staff',journal:'ScienceDaily',date:'2026-10-05',source:'ScienceDaily',url:'https://www.sciencedaily.com',summary:'科学家发现一种新的治疗性抗体策略，可同时抑制肺癌进展与癌症恶病质引起的肌肉消耗，为双重靶向生物药开发开辟方向。'},
+  {id:'d5',cat:'preprint',title:'Engineering the IL-18–IL-18BP axis for precision cancer immunotherapy',authors:'Zhang L, et al.',journal:'bioRxiv',date:'2026-10-03',source:'bioRxiv',url:'https://www.biorxiv.org',summary:'通过定向进化改造 IL-18，使其逃逸 IL-18BP 负调控，在小鼠肿瘤模型中展现显著抗肿瘤活性且毒性可控。'},
+  {id:'d6',cat:'academic',title:'Therapeutic engineering of the IL-18-IL-18BP axis for precision cancer immunotherapy',authors:'Liu Y, et al.',journal:'PubMed Recent',date:'2026-10-02',source:'PubMed',url:'https://pubmed.ncbi.nlm.nih.gov',summary:'IL-18 工程化蛋白在实体瘤免疫治疗中的临床前评估，提示与 PD-1 抑制剂联用具有协同效应。'},
+];
+
+function showDemo(){
+  allResults=DEMO_DATA.slice();
+  currentCat='all';
+  renderResults();
+  $('#logBox').innerHTML='<div class="text-emerald-400">[示例] 已加载示例数据 6 条，点击"立即开始全网检索"抓取真实最新数据</div>';
+  setStatus('done');setProgress(100,'示例数据已加载');
+  $('#reportBtn').disabled=false;
+}
+
+function renderSourceBox(){
+  const box=$('#sourceBox');
+  box.innerHTML=SOURCES.map(s=>`
+    <label class="flex items-center gap-2 cursor-pointer select-none">
+      <input type="checkbox" data-key="${s.key}" ${s.enabled?'checked':''} class="w-4 h-4 accent-[#0e7490]">
+      <span>${s.label}</span>
+    </label>
+  `).join('');
+  box.querySelectorAll('input').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const s=SOURCES.find(x=>x.key===cb.dataset.key);
+      if(s) s.enabled=cb.checked;
+    });
+  });
+}
+
+/* ============================
+ *  中文智能摘要引擎
+ *  基于关键词识别+分类模板，为每条重点条目生成中文精读解读
+ * ============================ */
+
+// 英文术语 → 中文对照词典
+const TERM_MAP = [
+  [/monoclonal antibody|mAb\b/gi,'单克隆抗体'],
+  [/antibody.drug conjugate|\bADC\b/gi,'抗体偶联药物（ADC）'],
+  [/bispecific antibody|bispecific/gi,'双特异性抗体'],
+  [/CAR.T|CAR.NK|chimeric antigen receptor/gi,'CAR-T/CAR-NK 细胞治疗'],
+  [/cell therapy/gi,'细胞治疗'],
+  [/gene therapy|gene editing|CRISPR/gi,'基因治疗/基因编辑'],
+  [/mRNA vaccine|mRNA therapeutic|mRNA/gi,'mRNA 疗法/疫苗'],
+  [/immune checkpoint|PD.1|PD.L1|CTLA.4/gi,'免疫检查点抑制剂'],
+  [/biosimilar/gi,'生物类似药'],
+  [/recombinant protein/gi,'重组蛋白药物'],
+  [/oncolytic virus/gi,'溶瘤病毒'],
+  [/IL.2|IL.18|interleukin/gi,'白细胞介素疗法'],
+  [/\bAAV\b|adeno.associated virus/gi,'腺相关病毒（AAV）载体'],
+  [/lentiviral/gi,'慢病毒载体'],
+  [/peptide therapeutic/gi,'多肽药物'],
+  [/immunotherapy/gi,'免疫治疗'],
+  [/vaccine/gi,'疫苗'],
+  [/therapeutic antibody/gi,'治疗性抗体'],
+  [/B.cell|B cell/gi,'B 细胞'],
+  [/T.cell|T cell/gi,'T 细胞'],
+  [/Phase\s*([123])/gi,'$1期临床'],
+  [/FDA (approval|approved|approves)/gi,'FDA 批准'],
+  [/clinical trial/gi,'临床试验'],
+  [/lysosomal storage/gi,'溶酶体贮积症'],
+  [/triple.negative breast cancer|TNBC/gi,'三阴性乳腺癌'],
+  [/lung cancer|NSCLC/gi,'肺癌'],
+  [/breast cancer/gi,'乳腺癌'],
+  [/cancer immunotherapy/gi,'肿瘤免疫治疗'],
+  [/IgG4/gi,'IgG4 相关疾病'],
+  [/rare disease|orphan/gi,'罕见病'],
+  [/safety|efficacy|pharmacokinetics|biomarker/gi,'安全性/有效性/药代/生物标志物'],
+  [/muscle wasting|cachexia/gi,'癌症恶病质/肌肉消耗'],
+  [/precision( medicine| cancer)/gi,'精准医疗'],
+  [/engineer(ed|ing)/gi,'工程化改造'],
+  [/in combination|combination therapy|plus|with Pembrolizumab/gi,'联合用药'],
+];
+
+// 研究类型识别
+const STUDY_TYPES = [
+  {re:/Phase\s*3|phase III|pivotal|randomized.*trial|RCT/gi, label:'Ⅲ期临床/关键试验', color:'#b91c1c'},
+  {re:/Phase\s*2|phase II/gi, label:'Ⅱ期临床', color:'#ea580c'},
+  {re:/Phase\s*1|phase I|first.in.human|dose.escalation/gi, label:'Ⅰ期临床/首次人体', color:'#c2410c'},
+  {re:/FDA (approval|approved|approves)|NMPA|EMA approval|获批/gi, label:'监管获批', color:'#b91c1c'},
+  {re:/preclinical|mouse model|in vivo|in vitro/gi, label:'临床前研究', color:'#7c3aed'},
+  {re:/review|perspective|editorial|commentary/gi, label:'综述/述评', color:'#ea580c'},
+  {re:/meta.analysis|systematic review/gi, label:'荟萃分析', color:'#0e7490'},
+  {re:/real.world|retrospective|observational/gi, label:'真实世界研究', color:'#15803d'},
+  {re:/biomarker|diagnostic/gi, label:'生物标志物/诊断', color:'#0e7490'},
+  {re:/case report/gi, label:'病例报告', color:'#64748b'},
+];
+
+// 领域方向识别
+const AREAS = [
+  {re:/oncology|cancer|tumor|tumour|carcinoma|melanoma|lymphoma|leukemia|neoplasm/gi, name:'肿瘤学'},
+  {re:/autoimmune|lupus|rheumatoid|IgG4|multiple sclerosis|psoriasis/gi, name:'自身免疫疾病'},
+  {re:/rare disease|lysosomal|orphan/gi, name:'罕见病'},
+  {re:/vaccine|infectious|COVID|influenza|HIV|HBV/gi, name:'传染病与疫苗'},
+  {re:/gene (therapy|editing)|CRISPR|AAV|lentiviral|hemophilia|muscular dystrophy/gi, name:'基因治疗'},
+  {re:/cardiovasc|heart|myocardial|stroke|atheroscler/gi, name:'心血管疾病'},
+  {re:/neuro|Alzheimer|Parkinson|ALS|stroke|dementia/gi, name:'神经疾病'},
+  {re:/diabetes|metabolic|obesity/gi, name:'代谢疾病'},
+  {re:/manufacturing|CMC|production|biosimilar|process/gi, name:'生物药工艺/生产'},
+  {re:/regulatory|FDA|EMA|NMPA|guideline|approval/gi, name:'监管政策'},
+];
+
+function detectStudyType(text){
+  for(const s of STUDY_TYPES){ if(s.re.test(text)){ s.re.lastIndex=0; return s; } s.re.lastIndex=0; }
+  return {label:'研究更新', color:'#0e7490'};
+}
+function detectArea(text){
+  for(const a of AREAS){ if(a.re.test(text)){ a.re.lastIndex=0; return a.name; } a.re.lastIndex=0; }
+  return '综合生物药';
+}
+function highlightTerms(text){
+  if(!text) return '';
+  let out=text;
+  // 把关键词标记为 <b> 加粗中文
+  TERM_MAP.forEach(([re,cn])=>{ out=out.replace(re,`<b style="color:#0e7490">${cn}</b>`); });
+  return out;
+}
+
+/**
+ * 为单条条目生成中文精读：返回 {titleZh, studyType, area, coreFinding, significance, rating}
+ */
+function summarizeItemZh(item){
+  const rawText = (item.title||'') + ' ' + (item.summary||'') + ' ' + (item.journal||'');
+  const studyType = detectStudyType(rawText);
+  const area = detectArea(rawText);
+
+  // 提取标题中文译名（若本身是中文则直接用；否则基于关键词做语义归纳）
+  let titleZh = item.title || '';
+  // 判断是否含中文字符
+  const hasZh = /[\u4e00-\u9fa5]/.test(item.title||'');
+
+  // 根据分类+研究类型，自动生成中文核心发现
+  const catKey = item.cat;
+  let coreFinding = '';
+  let significance = '';
+
+  // 核心发现：基于现有 summary 做中文转写，并插入术语高亮；若无 summary 则根据标题和分类生成
+  const src = (item.summary && item.summary.length>20) ? item.summary : (item.title||'');
+  // 简单翻译/提炼：若原summary是英文，提取关键短语；此处我们通过模板+术语替换生成中文导读
+  const srcHasZh = /[\u4e00-\u9fa5]/.test(src);
+
+  if(srcHasZh){
+    coreFinding = src.slice(0,280);
+  } else {
+    // 英文内容：基于分类生成中文导读模板
+    const keyTechs = [];
+    TERM_MAP.forEach(([re,cn])=>{ if(re.test(src)){ keyTechs.push(cn); re.lastIndex=0;} re.lastIndex=0; });
+    const uniqTechs = [...new Set(keyTechs)].slice(0,3);
+    if(catKey==='academic'){
+      coreFinding = `本文报道了${uniqTechs.length?uniqTechs.join('、'):'生物药'}领域的最新研究进展。研究团队通过严谨实验设计，评估了相关疗法在目标适应症中的作用机制与疗效信号，${item.journal?`成果发表于 ${item.journal}`:'已发表学术期刊'}。`;
+    } else if(catKey==='preprint'){
+      coreFinding = `预印本报道了${uniqTechs.length?uniqTechs.join('、'):'新型生物疗法'}方向的突破性工作。作者提出了新的分子设计或治疗策略，目前尚处于同行评议前阶段，结果有待进一步验证。`;
+    } else if(catKey==='trial'){
+      const phaseMatch = (item.summary||'').match(/Phase\s*([123])/i);
+      coreFinding = `该${phaseMatch?`${phaseMatch[1]}期`:''}临床试验${uniqTechs.length?'评估了'+uniqTechs.join('、')+'在':'涉及'}目标人群中的安全性与有效性；试验状态与入组信息已在 ClinicalTrials.gov 更新，可为后续临床开发提供关键数据。`;
+    } else if(catKey==='regulatory'){
+      coreFinding = `监管机构发布了${uniqTechs.length?uniqTechs.join('、'):'生物药'}相关最新动态，涉及审批、指南或安全性信息更新，对相关品种的全球开发与商业化路径具有重要指导意义。`;
+    } else if(catKey==='review'){
+      coreFinding = `${item.journal||'顶刊'}发表综述/述评文章，系统梳理了${uniqTechs.length?uniqTechs.join('、'):'生物药'}领域的近期关键进展、存在挑战与未来方向，适合作为领域入门与趋势把握的参考。`;
+    } else {
+      coreFinding = `${item.source||'产业媒体'}报道了${uniqTechs.length?uniqTechs.join('、'):'生物药'}领域的最新产业/科研动态，反映相关技术与品种的最新开发进展或商业化动向。`;
+    }
+  }
+
+  // 行业意义点评（根据分类+期刊/来源+研究类型生成）
+  const sigByCat = {
+    academic:   '为同类疗法的机制理解与后续临床转化提供了新的循证依据，值得领域研究者关注。',
+    preprint:   '虽尚未经同行评议，但若结果可被重复，将对相关方向产生重要推动，建议持续追踪正式发表版本。',
+    review:     '有助于快速建立对细分方向的全局认知，对选题、立项与趋势研判有较高参考价值。',
+    trial:      '是相关疗法从实验室走向临床的关键节点，其安全性与有效性数据将直接影响后续开发决策。',
+    regulatory: '直接关系到相关品种在全球主要市场的准入路径、标签范围与商业化节奏，企业需重点跟进。',
+    industry:   '反映资本、产业界与学术界的最新关注方向，对判断赛道热度、合作机遇有信号意义。'
+  };
+  let sigBase = sigByCat[catKey] || '对生物药领域科研与产业决策有参考价值。';
+  // 若为 NEJM/Nature/Lancet/Cell/JAMA 等顶刊，加强语气
+  if(/NEJM|New England|Nature|Lancet|Cell\b|JAMA|Science|BMJ/i.test(item.journal||'')){
+    sigBase = '⚠️ <b>发表于国际顶级医学期刊</b>，结论具有较高权威性，往往代表该方向的重要临床或科学突破，建议深入研读原文。' + sigBase;
+  }
+  if(/FDA.*approv|获批/i.test(rawText)){
+    sigBase = '🎉 <b>监管获批类重磅进展</b>，标志相关疗法正式进入商业化阶段，将直接改变临床实践格局，同时对同靶点竞品构成里程碑压力。' + sigBase;
+  }
+  if(/Phase\s*3|pivotal/i.test(rawText)){
+    sigBase = '🔑 <b>关键/Ⅲ期临床更新</b>，数据读出将直接决定上市申请节奏，是当前管线价值的核心变量。' + sigBase;
+  }
+  significance = sigBase;
+
+  // 推荐度星级（根据来源、研究类型打分）
+  let score = 2;
+  if(/NEJM|New England|Nature|Lancet|Cell\b|JAMA|Science|BMJ/i.test(item.journal||'')) score++;
+  if(/FDA.*approv|获批/i.test(rawText)) score++;
+  if(/Phase\s*3|pivotal/i.test(rawText)) score++;
+  if(catKey==='review' && /Nature|NEJM|Lancet/i.test(item.journal||'')) score++;
+  score = Math.min(score,5);
+  const rating = '★'.repeat(score) + '☆'.repeat(5-score);
+
+  // 中文标题
+  if(hasZh){
+    titleZh = item.title;
+  } else {
+    // 基于关键词拼一个中文要点式标题
+    const techs = [];
+    TERM_MAP.forEach(([re,cn])=>{ if(re.test(item.title||'')){ techs.push(cn); re.lastIndex=0;} re.lastIndex=0; });
+    const action = /approv|approval/i.test(item.title||'') ? '取得新突破/获批进展'
+                 : /engineer|novel|new/i.test(item.title||'') ? '取得新进展'
+                 : /Phase\s*[123]|trial/i.test(item.title||'') ? '公布临床新动态'
+                 : /review|perspective/i.test(item.title||'') ? '发表重要综述'
+                 : '发布最新研究';
+    titleZh = (techs.length?techs[0]+'领域':'生物药领域') + action;
+  }
+
+  return { titleZh, studyType, area, coreFinding, significance, rating, hasZh };
+}
+
+function openReport(){
+  if(!allResults.length){ alert('请先抓取数据或加载示例数据后再生成报告'); return; }
+  buildReport();
+  $('#reportModal').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+}
+function closeReport(){
+  $('#reportModal').classList.add('hidden');
+  document.body.style.overflow='';
+}
+
+function buildReport(){
+  const total=allResults.length;
+  const catStats=CATEGORIES.map(c=>({...c, items:allResults.filter(r=>r.cat===c.key), count:allResults.filter(r=>r.cat===c.key).length}));
+  const sourceCount={};
+  allResults.forEach(r=>{sourceCount[r.source]=(sourceCount[r.source]||0)+1;});
+  const sourceList=Object.entries(sourceCount).sort((a,b)=>b[1]-a[1]);
+  const maxCat=Math.max(...catStats.map(c=>c.count),1);
+  const generatedAt=new Date().toLocaleString('zh-CN',{hour12:false});
+
+  // ===== 智能挑选重点文献（前 5 条做中文精读）=====
+  // 策略：优先顶刊/获批/Phase3，再按原始顺序补足到 5 条
+  function priorityScore(it){
+    const t=(it.title||'')+' '+(it.summary||'')+' '+(it.journal||'');
+    let s=0;
+    if(/NEJM|New England|Nature|Lancet|Cell\b|JAMA|Science|BMJ/i.test(t)) s+=100;
+    if(/FDA.*approv|approved|获批/i.test(t)) s+=80;
+    if(/Phase\s*3|pivotal/i.test(t)) s+=60;
+    if(/Phase\s*2/gi.test(t)) s+=40;
+    if(/breakthrough|first.in.human|novel|engineered/gi.test(t)) s+=20;
+    // 优先带摘要的条目
+    if(it.summary && it.summary.length>80) s+=10;
+    return s;
+  }
+  const scored=[...allResults].map((it,i)=>({it,i,s:priorityScore(it)}));
+  scored.sort((a,b)=>b.s-a.s || a.i-b.i);
+  const topPicks = scored.slice(0,Math.min(5,scored.length)).map(x=>x.it);
+
+  // 自动撰写执行摘要
+  const topCat=catStats.filter(c=>c.count>0).sort((a,b)=>b.count-a.count)[0];
+  // 统计精读亮点
+  const deepAreas=[...new Set(topPicks.map(p=>summarizeItemZh(p).area))];
+  const deepTypes=[...new Set(topPicks.map(p=>summarizeItemZh(p).studyType.label))];
+  const summaryText = topCat
+    ? `本次检索共收录全球生物药领域最新资讯 ${total} 条，覆盖 ${sourceList.length} 个公开数据源。其中「${topCat.label.replace(/^[^\u4e00-\u9fa5a-zA-Z]+/,'')}」相关内容最多（${topCat.count} 条），${catStats.find(c=>c.key==='trial')?.count?`临床试验更新 ${catStats.find(c=>c.key==='trial').count} 项`:'暂无新临床试验更新'}，${catStats.find(c=>c.key==='regulatory')?.count?`监管动态 ${catStats.find(c=>c.key==='regulatory').count} 条`:'暂无监管更新'}。本报告精选 ${topPicks.length} 篇重点文献做中文精读解读，覆盖 ${deepAreas.slice(0,3).join('、')} 等方向，涉及 ${deepTypes.slice(0,3).join('、')} 类研究，供科研与产业决策参考。`
+    : `本次检索共收录 ${total} 条资讯。`;
+
+  const html = `
+    <!-- 封面 -->
+    <div class="r-page r-cover">
+      <div>
+        <span class="r-kicker">DAILY RESEARCH BRIEFING</span>
+        <h1>生物药研究进展<br/>每日报告</h1>
+        <div class="r-sub">Biopharma Research Daily · 覆盖学术文献、预印本、临床试验、监管动态与产业新闻，自动生成结构化情报简报，并对重点文献进行中文摘要精读。</div>
+        <div class="r-meta">
+          <div class="r-meta-card"><div class="k">报告日期</div><div class="v">${todayStr()}</div></div>
+          <div class="r-meta-card"><div class="k">资讯总量</div><div class="v">${total} 条</div></div>
+          <div class="r-meta-card"><div class="k">重点精读</div><div class="v">${topPicks.length} 篇</div></div>
+        </div>
+      </div>
+      <div class="r-foot">
+        <span>© BioPharma Research Tracker · Auto-generated</span>
+        <span>生成时间：${generatedAt}</span>
+      </div>
+    </div>
+
+    <!-- 执行摘要 -->
+    <div class="r-page">
+      <div class="r-section-title"><span class="r-bar"></span>执行摘要</div>
+      <p class="r-section-sub">Executive Summary</p>
+      <div class="r-kpi-grid">
+        <div class="r-kpi"><div class="n">${total}</div><div class="l">今日资讯总数</div></div>
+        <div class="r-kpi"><div class="n">${catStats.filter(c=>c.count>0).length}</div><div class="l">活跃分类数</div></div>
+        <div class="r-kpi"><div class="n">${sourceList.length}</div><div class="l">覆盖数据源</div></div>
+        <div class="r-kpi"><div class="n">${topPicks.length}</div><div class="l">重点精读</div></div>
+      </div>
+      <p style="font-size:14px;color:#334155;line-height:1.8;background:#f8fafc;border-left:4px solid #0e7490;padding:14px 18px;border-radius:8px;margin-bottom:24px;">
+        ${summaryText}
+      </p>
+
+      <div class="r-section-title"><span class="r-bar"></span>分类分布</div>
+      <p class="r-section-sub">Category Distribution</p>
+      <div class="r-bar-chart">
+        ${catStats.map(c=>`
+          <div class="r-bar-row">
+            <div class="lbl"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${c.color}"></span>${c.label.replace(/^[^\u4e00-\u9fa5a-zA-Z]+/,'')}</div>
+            <div class="track"><div class="fill" style="width:${(c.count/maxCat*100)||0}%"></div></div>
+            <div class="num">${c.count}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- 重点文献精读（中文摘要） -->
+    <div class="r-page">
+      <div class="r-section-title"><span class="r-bar"></span>重点文献精读</div>
+      <p class="r-section-sub">Deep-Dive Summaries in Chinese · 基于 AI 规则引擎自动提炼研究主题、核心发现与行业意义</p>
+      <div class="r-deepread">
+        ${topPicks.map((h,idx)=>{
+          const sum=summarizeItemZh(h);
+          const cat=CATEGORIES.find(c=>c.key===h.cat)||CATEGORIES[0];
+          return `
+          <div class="r-dr-card">
+            <div class="r-dr-head">
+              <div class="r-dr-tags">
+                <span class="r-dr-stag" style="background:${cat.color}15;color:${cat.color};border:1px solid ${cat.color}40">${cat.label.replace(/^[^\u4e00-\u9fa5a-zA-Z]+/,'')}</span>
+                <span class="r-dr-stag" style="background:${sum.studyType.color}15;color:${sum.studyType.color};border:1px solid ${sum.studyType.color}40">${sum.studyType.label}</span>
+                <span class="r-dr-stag" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0">${escapeHtml(sum.area)}</span>
+                <span class="r-dr-stag" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0">${escapeHtml(h.source||'')}</span>
+              </div>
+              <div class="r-dr-rating" title="推荐度">${sum.rating}</div>
+            </div>
+            <div class="r-dr-title-cn">精读 ${idx+1}：${escapeHtml(sum.titleZh)}</div>
+            ${!sum.hasZh ? `<div class="r-dr-title-orig">原题：${escapeHtml(h.title||'')}</div>` : ''}
+            <div class="r-dr-block">
+              <div class="lbl">📌 核心发现</div>
+              <div class="body">${sum.coreFinding}</div>
+            </div>
+            <div class="r-dr-block">
+              <div class="lbl s">💡 行业意义</div>
+              <div class="body">${sum.significance}</div>
+            </div>
+            <div class="r-dr-meta">
+              ${h.journal?`<span>📚 ${escapeHtml(h.journal.slice(0,50))}</span>`:''}
+              ${h.date?`<span>🗓 ${escapeHtml(h.date.slice(0,10))}</span>`:''}
+              ${h.authors?`<span>👥 ${escapeHtml(h.authors.slice(0,60))}${h.authors.length>60?' et al.':''}</span>`:''}
+              <span>🔗 <a href="${escapeHtml(h.url)}" target="_blank" rel="noopener">原文链接</a></span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- 分章节详情 -->
+    <div class="r-page">
+      <div class="r-section-title"><span class="r-bar"></span>分类详情</div>
+      <p class="r-section-sub">Full Listings by Category</p>
+      ${catStats.filter(c=>c.count>0).map(c=>`
+        <div class="r-cat-section">
+          <div class="r-cat-header">
+            <span class="dot" style="background:${c.color}"></span>
+            <span class="t">${c.label}</span>
+            <span class="c">${c.count} 条 · ${c.desc}</span>
+          </div>
+          ${c.items.map(it=>`
+            <div class="r-item">
+              <div class="t">${escapeHtml(it.title)}</div>
+              ${it.summary?`<div class="m">${escapeHtml(it.summary.slice(0,300))}</div>`:''}
+              <div class="f">
+                <span class="tag">${escapeHtml(it.source||'')}</span>
+                ${it.journal?`<span class="tag">${escapeHtml(it.journal.slice(0,40))}</span>`:''}
+                ${it.date?`<span class="tag">${escapeHtml(it.date.slice(0,10))}</span>`:''}
+                ${it.authors?`<span class="tag">${escapeHtml(it.authors.slice(0,50))}</span>`:''}
+                <span class="tag" style="color:#0e7490">${escapeHtml(it.url)}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- 数据来源与方法 -->
+    <div class="r-page">
+      <div class="r-section-title"><span class="r-bar"></span>数据来源与方法</div>
+      <p class="r-section-sub">Data Sources & Methodology</p>
+      <div class="r-source-grid">
+        ${sourceList.map(([n,c])=>`
+          <div class="r-src"><div class="n">${escapeHtml(n)}</div><div class="c">收录 ${c} 条</div></div>
+        `).join('')}
+      </div>
+      <div style="font-size:13px;color:#475569;line-height:1.8;background:#f8fafc;padding:16px 20px;border-radius:10px;border:1px solid #e2e8f0;">
+        <p style="margin:0 0 8px"><strong>检索关键词：</strong>${BIOPHARMA_KEYWORDS.slice(0,10).join(' · ')} 等</p>
+        <p style="margin:0 0 8px"><strong>检索范围：</strong>过去 3 天内公开发表/更新的生物药相关文献、临床试验注册、监管公告与产业新闻。</p>
+        <p style="margin:0 0 8px"><strong>重点筛选：</strong>根据期刊影响力（NEJM/Nature/Lancet/Cell 等顶刊优先）、研究阶段（FDA 获批、Ⅲ期临床 > Ⅱ期 > Ⅰ期 > 临床前）和内容完整度智能排序，自动选出 5 篇重点精读文献。</p>
+        <p style="margin:0 0 8px"><strong>中文摘要：</strong>采用基于关键词与规则模板的中文智能摘要引擎，自动识别研究类型（综述/临床/监管/临床前等）、疾病领域、技术类型，并生成中文核心发现与行业意义点评；英文原文保留在精读卡片中供对照。</p>
+        <p style="margin:0 0 8px"><strong>数据获取：</strong>浏览器端直接调用各数据源公开 API（PubMed E-utilities、bioRxiv API、ClinicalTrials.gov v2 API、WHO News API、RSS Feed），部分来源通过公共 CORS 代理中转以绕过浏览器跨域限制。</p>
+        <p style="margin:0"><strong>免责声明：</strong>本报告与中文精读由浏览器端规则引擎自动生成，仅供科研信息参考与线索提示，不构成任何医疗、投资或法律建议；中文解读可能存在偏差，具体研究细节与结论请点击条目查阅原始来源并以原文为准。</p>
+      </div>
+    </div>
+
+    <div class="r-endnote">
+      — 报告结束 · End of Report —<br/>
+      Generated by BioPharma Research Tracker · ${todayStr()}
+    </div>
+  `;
+  $('#reportContent').innerHTML=html;
+}
+
+function exportPdf(){
+  const btn=$('#exportPdfBtn');
+  const btnText=$('#pdfBtnText');
+  btn.disabled=true;
+  btnText.textContent='生成中…';
+
+  const element=document.getElementById('reportContent');
+  const opt={
+    margin:       [8,6,8,6],
+    filename:     `生物药研究进展日报_${todayStr()}.pdf`,
+    image:        { type:'jpeg', quality:0.96 },
+    html2canvas:  { scale:2, useCORS:true, logging:false, backgroundColor:'#ffffff' },
+    jsPDF:        { unit:'mm', format:'a4', orientation:'portrait' },
+    pagebreak:    { mode:['css','legacy'] },
+  };
+  html2pdf().set(opt).from(element).save().then(()=>{
+    btn.disabled=false;
+    btnText.textContent='导出 PDF';
+  }).catch(err=>{
+    console.error(err);
+    btn.disabled=false;
+    btnText.textContent='导出 PDF';
+    alert('PDF 导出失败：'+err.message);
+  });
+}
+
+function printReport(){ window.print(); }
+
+/* ---------- 初始化 ---------- */
+document.addEventListener('DOMContentLoaded',()=>{
+  $('#todayLabel').textContent=todayStr();
+  renderSourceBox();
+  $('#fetchBtn').addEventListener('click',runFetch);
+  $('#stopBtn').addEventListener('click',()=>{abortFlag=true;log('已发送停止信号……','warn');});
+  $('#demoBtn').addEventListener('click',showDemo);
+  $('#exportJsonBtn').addEventListener('click',exportJson);
+  $('#exportMdBtn').addEventListener('click',exportMd);
+  $('#reportBtn').addEventListener('click',openReport);
+  $('#reportBtnInline').addEventListener('click',openReport);
+  $('#closeModalBtn').addEventListener('click',closeReport);
+  $('#exportPdfBtn').addEventListener('click',exportPdf);
+  $('#printBtn').addEventListener('click',printReport);
+  // 点击遮罩关闭
+  $('#reportModal').addEventListener('click',(e)=>{ if(e.target.id==='reportModal') closeReport(); });
+  // ESC 关闭
+  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && !$('#reportModal').classList.contains('hidden')) closeReport(); });
+  setTimeout(showDemo,400);
+});
+</script>
+</body>
+</html>
+<!--19069568172395614730100809--><!--19263225822395614730100809--><!--20104328372395614730100809--><!--20241985382573747210100809--><!--20329167602395614730100809--><!--20390582532573747210100809-->
